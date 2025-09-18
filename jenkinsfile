@@ -47,7 +47,7 @@ pipeline {
                 }
             }
         }
-        
+
 
         // Scans your local source code directory (before you build the image) for security vulnerabilities (CVEs), secrets and misconfigurations.
         stage('Trivy FS Scan') {
@@ -74,12 +74,17 @@ pipeline {
         stage('Trivy Image Scan') {
             steps {
                 // Generate a readable report (always runs)
-                sh "trivy image --format table -o trivy-image-report.html ${IMAGE_NAME}:${IMAGE_TAG}"
+                // --scanners vuln → only run the vulnerability scanner (skips secret scanning, saves disk space). 
+                // If you remove (--scanners vuln), you will be scanning secrets too and this takes up disk space. You may encounter a memory error that may cause the pipeline to fail.
+
+                sh "trivy image --scanners vuln --format table -o trivy-image-report.html ${IMAGE_NAME}:${IMAGE_TAG}"
+                
                 
                 
                 // Enforce quality gate (fails if CRITICAL/HIGH CVEs found and breaks the pipeline). 
                 // N/B:  --exit-code 0 means nothing will happen even if there are vulnerabilities (CVE - Common Vulnerabilities and Exposures). 
                 // --exit-code 1 means pipeline will stop.
+
                 sh "trivy image --exit-code 1 --severity CRITICAL,HIGH ${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
