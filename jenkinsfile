@@ -17,7 +17,7 @@ pipeline {
         GIT_URL = 'https://github.com/eedunoh/k8_artisan_app_deployment.git'
         K8_CLUSTER_NAME = 'artisian_app_cluster'
         K8_CLUSTER_REGION = 'eu-north-1'
-        MANIFESTS_DIR = 'cluster_app_and_resources_deployments/manifests_yml'
+        MANIFESTS_DIR = 'cluster_app_and_resources_deployments/manifests_yaml'
         TERRAFORM_DIR = 'cluster_app_and_resources_deployments/terraform_files'
         TF_PLAN_FILE = 'tfplan.binary'
         SONAR_PROJECT_NAME = 'artisan_app_sonar'
