@@ -3,7 +3,8 @@ pipeline {
 
     // I parametized my terraform workflow
     parameters {
-        booleanParam(name: 'TERRAFORM_PLAN', defaultValue: false, description: 'select this option to plan terraform configurations')
+        booleanParam(name: 'PRE_INFRASTRUCTURE', defaultValue: false, description: 'select this option to build all pre-infrastructure configurations like github clone, sonar and trivy scans, image build and push to docker hub')
+        booleanParam(name: 'TERRAFORM_INIT_AND_PLAN', defaultValue: false, description: 'select this option to initialize and plan terraform configurations')
         booleanParam(name: 'TERRAFORM_APPLY', defaultValue: false, description: 'select this option to apply terraform configurations')
         booleanParam(name: 'CLUSTER_DEPLOYMENTS', defaultValue: false, description: 'select this option to deploy app and resources to k8 cluster')
         booleanParam(name: 'TERRAFORM_DESTROY', defaultValue: false, description: 'select this option to destroy terraform configurations')
@@ -30,6 +31,9 @@ pipeline {
 
         // Clone the git repository/work area
         stage('Clone Git Repository') {
+            when {
+                expression { params.PRE_INFRASTRUCTURE }
+            }
             steps {
                 echo "Cleaning workspace and cloning gir repositoy..."
                 deleteDir()
@@ -41,6 +45,9 @@ pipeline {
 
         // Scans Code for quality, maintainability, bugs, code smells, test coverage
         stage('SonarQube Analysis') {
+            when {
+                expression { params.PRE_INFRASTRUCTURE }
+            }
             steps {
                 withSonarQubeEnv('sonar') {
                     sh "$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=${SONAR_PROJECT_NAME} -Dsonar.projectKey=${SONAR_PROJECT_NAME}"
@@ -51,6 +58,9 @@ pipeline {
 
         // Scans your local source code directory (before you build the image) for security vulnerabilities (CVEs), secrets and misconfigurations.
         stage('Trivy FS Scan') {
+            when {
+                expression { params.PRE_INFRASTRUCTURE }
+            }
             steps {
                 sh 'trivy fs --format table -o trivy-fs-report.html .'
             }
@@ -59,6 +69,9 @@ pipeline {
 
         // Your Trivy scan report will be stored in a file. This stage lets you view your scan report on jenkins UI (or terminal).
         stage('Publish Trivy File System Scan Report') {
+            when {
+                expression { params.PRE_INFRASTRUCTURE }
+            }
             steps {
                 publishHTML([
                     reportDir: '.',                      // directory where the HTML file is saved
@@ -74,6 +87,9 @@ pipeline {
 
         // Build docker image
         stage('Build Docker Image') {
+            when {
+                expression { params.PRE_INFRASTRUCTURE }
+            }
             steps {
                 echo "Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
                 dir("${APP_FOLDER}") {
@@ -87,6 +103,9 @@ pipeline {
 
         // Clean up Docker build cache
         stage('Clean Docker Builder Cache') {
+            when {
+                expression { params.PRE_INFRASTRUCTURE }
+            }
             steps {
                 sh 'docker builder prune -a -f'
             }
@@ -95,6 +114,9 @@ pipeline {
 
         // Push docker image to docker registry (dockerhub)
         stage('Push Docker Image to Docker Hub') {
+            when {
+                expression { params.PRE_INFRASTRUCTURE }
+            }
             steps {
                 echo "🚀 Pushing Docker image to Docker Hub..."
                 script {
@@ -107,6 +129,9 @@ pipeline {
     
 
         stage('Terraform Init') {
+            when {
+                expression { params.TERRAFORM_INIT_AND_PLAN }
+            }
             steps{
                 echo "⚙️ Initializing Terraform..."
                 withCredentials([[
@@ -126,7 +151,7 @@ pipeline {
 
         stage('Terraform Plan') {
             when {
-                expression { params.TERRAFORM_PLAN }
+                expression { params.TERRAFORM_INIT_AND_PLAN }
             }
             steps {
                 echo "🔍 Running Terraform Plan..."
