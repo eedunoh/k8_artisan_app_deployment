@@ -47,12 +47,12 @@ git clone https://github.com/eedunoh/k8_artisan_app_deployment.git
 
 
 # Navigate into your Docker Compose files
-cd /home/ec2-user/k8_artisan_app_deployment/dockerfiles
+cd /home/ec2-user/k8_artisan_app_deployment/vpc_and_cicd_deployments/dockerfiles
 
 
 # Change ownership for Jenkins volume directory
-sudo mkdir -p /home/ec2-user/k8_artisan_app_deployment
-sudo chown -R 1000:1000 /home/ec2-user/k8_artisan_app_deployment
+sudo mkdir -p /home/ec2-user/jenkins_install
+sudo chown -R 1000:1000 /home/ec2-user/jenkins_install
 
 
 # Sleep to ensure Docker daemon is ready (optional)
