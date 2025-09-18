@@ -43,11 +43,11 @@ git --version
 
 # Clone the repo and start docker-compose
 cd /home/ec2-user
-git clone https://github.com/eedunoh/jenkins_aws_install_for_static_file_upload.git
+git clone https://github.com/eedunoh/k8_artisan_app_deployment.git
 
 
 # Navigate into your Docker Compose files
-cd /home/ec2-user/jenkins_aws_install_for_static_file_upload/dockerfiles
+cd /home/ec2-user/k8_artisan_app_deployment/dockerfiles
 
 
 # Change ownership for Jenkins volume directory
