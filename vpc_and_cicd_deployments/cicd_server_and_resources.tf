@@ -22,6 +22,14 @@ resource "aws_security_group" "cicd_sg" {
     cidr_blocks = ["0.0.0.0/0"]    # we can modify this rule to allow traffic from ONLY authorized IP addresses to achieve stricter security.
   }
 
+  ingress {
+    description = "cicd server ingress"
+    from_port   = 9001
+    to_port     = 9001
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]    # we can modify this rule to allow traffic from ONLY authorized IP addresses to achieve stricter security.
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
