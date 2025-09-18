@@ -80,6 +80,7 @@ networks:
 
 volumes:
   jenkins_docker_data:
+  jenkins-docker-certs:
   sonarqube_conf:
   sonarqube_data:
   sonarqube_extensions:
