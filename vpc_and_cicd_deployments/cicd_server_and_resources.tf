@@ -48,9 +48,9 @@ resource "aws_instance" "cicd_server" {
   key_name               = var.ec2_key_name                 # this is an already existing key on my aws account
   
 
-  # I add a larger root volume (100 GB gp3) so all images and containers can run seamlesly.
+  # I add a larger root volume (50 GB gp3) so all images and containers can run seamlesly.
   root_block_device {
-    volume_size = 100 # GB
+    volume_size = 50 # GB
     volume_type = "gp3"
   }
 
