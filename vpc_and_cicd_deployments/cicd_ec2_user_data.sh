@@ -51,8 +51,8 @@ cd /home/ec2-user/k8_artisan_app_deployment/dockerfiles
 
 
 # Change ownership for Jenkins volume directory
-sudo mkdir -p /home/ec2-user/jenkins_install
-sudo chown -R 1000:1000 /home/ec2-user/jenkins_install
+sudo mkdir -p /home/ec2-user/k8_artisan_app_deployment
+sudo chown -R 1000:1000 /home/ec2-user/k8_artisan_app_deployment
 
 
 # Sleep to ensure Docker daemon is ready (optional)
