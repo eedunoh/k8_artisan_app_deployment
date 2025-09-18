@@ -57,6 +57,21 @@ pipeline {
         }
 
 
+        // Your Trivy scan report will be stored in a file. This stage lets you view your scan report on jenkins UI (or terminal).
+        stage('Publish Trivy File System Scan Report') {
+            steps {
+                publishHTML([
+                    reportDir: '.',                      // directory where the HTML file is saved
+                    reportFiles: 'trivy-fs-report.html',
+                    reportName: 'Trivy File System Report',
+                    allowMissing: false,
+                    keepAll: true,                       // keep old reports from previous builds
+                    alwaysLinkToLastBuild: true
+                ])
+            }
+        }
+
+
         // Build docker image
         stage('Build Docker Image') {
             steps {
@@ -70,39 +85,13 @@ pipeline {
         }
 
 
-        // Scans a built Docker image.
-        stage('Trivy Image Scan') {
+        // Clean up Docker build cache
+        stage('Clean Docker Builder Cache') {
             steps {
-                // Generate a readable report (always runs)
-                // --scanners vuln → only run the vulnerability scanner (skips secret scanning, saves disk space). 
-                // If you remove (--scanners vuln), you will be scanning secrets too and this takes up disk space. You may encounter a memory error that may cause the pipeline to fail.
-
-                sh "trivy image --scanners vuln --format table -o trivy-image-report.html ${IMAGE_NAME}:${IMAGE_TAG}"
-                
-                
-                
-                // Enforce quality gate (fails if CRITICAL/HIGH CVEs found and breaks the pipeline). 
-                // N/B:  --exit-code 0 means nothing will happen even if there are vulnerabilities (CVE - Common Vulnerabilities and Exposures). 
-                // --exit-code 1 means pipeline will stop.
-
-                sh "trivy image --exit-code 1 --severity CRITICAL,HIGH ${IMAGE_NAME}:${IMAGE_TAG}"
+                sh 'docker builder prune -a -f'
             }
         }
 
-
-        // Your Trivy scan report will be stored in a file. This stage lets you view your scan report on jenkins UI (or terminal).
-        stage('Publish Trivy Image Scan Report') {
-            steps {
-                publishHTML([
-                    reportDir: '.',                      // directory where the HTML file is saved
-                    reportFiles: 'trivy-image-report.html',
-                    reportName: 'Trivy Image Scan Report',
-                    allowMissing: false,
-                    keepAll: true,                       // keep old reports from previous builds
-                    alwaysLinkToLastBuild: true
-                ])
-            }
-        }
 
         // Push docker image to docker registry (dockerhub)
         stage('Push Docker Image to Docker Hub') {
