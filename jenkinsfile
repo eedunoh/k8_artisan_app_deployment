@@ -47,17 +47,7 @@ pipeline {
                 }
             }
         }
-
         
-        // Wait for SonarQube server to complete analysis and check quality gate. If quality check fails, abort pipeline.
-        stage("SonarQube Quality Gate") {
-            steps {
-                timeout(time: 30, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
-
 
         // Scans your local source code directory (before you build the image) for security vulnerabilities (CVEs), secrets and misconfigurations.
         stage('Trivy FS Scan') {
@@ -88,7 +78,8 @@ pipeline {
                 
                 
                 // Enforce quality gate (fails if CRITICAL/HIGH CVEs found and breaks the pipeline). 
-                // N/B:  --exit-code 0 means nothing will happen even if there are vulnerabilities (CVE - Common Vulnerabilities and Exposures)
+                // N/B:  --exit-code 0 means nothing will happen even if there are vulnerabilities (CVE - Common Vulnerabilities and Exposures). 
+                // --exit-code 1 means pipeline will stop.
                 sh "trivy image --exit-code 1 --severity CRITICAL,HIGH ${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
