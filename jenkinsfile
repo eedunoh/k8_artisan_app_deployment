@@ -3,10 +3,10 @@ pipeline {
 
     // I parametized my terraform workflow
     parameters {
-        booleanParam(name: 'TERRAFORM_PLAN', default_value: false, description: 'select this option to plan terraform configurations')
-        booleanParam(name: 'TERRAFORM_APPLY', default_value: false, description: 'select this option to apply terraform configurations')
-        booleanParam(name: 'CLUSTER_DEPLOYMENTS', default_value: false, description: 'select this option to deploy app and resources to k8 cluster')
-        booleanParam(name: 'TERRAFORM_DESTROY', default_value: false, description: 'select this option to destroy terraform configurations')
+        booleanParam(name: 'TERRAFORM_PLAN', defaultValue: false, description: 'select this option to plan terraform configurations')
+        booleanParam(name: 'TERRAFORM_APPLY', defaultValue: false, description: 'select this option to apply terraform configurations')
+        booleanParam(name: 'CLUSTER_DEPLOYMENTS', defaultValue: false, description: 'select this option to deploy app and resources to k8 cluster')
+        booleanParam(name: 'TERRAFORM_DESTROY', defaultValue: false, description: 'select this option to destroy terraform configurations')
     }
 
     environment {
