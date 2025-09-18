@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# install cloud-utils-growpart if not already installed
+sudo yum install -y cloud-utils-growpart
+
+# expand the partition to use all available space because we added a larger root volume (100 GB gp3).
+sudo growpart /dev/nvme0n1 1
+
+# resize the filesystem to fill the expanded partition
+sudo xfs_growfs -d /
+
+
 # Update system packages
 sudo yum update -y
 
