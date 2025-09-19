@@ -31,3 +31,6 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': json.dumps('Notification sent successfully')
     }
+
+
+# use this Bash code to convert this function.py file to function.zip file. This is because the lambda resource only accepts a .zip file;    zip lambda_function.zip lambda_function.py
