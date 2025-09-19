@@ -1,0 +1,39 @@
+# Create lambda resource
+resource "aws_lambda_function" "artisan_app_lambda_function" {
+  function_name = "static_upload_lambda_function"    
+
+  filename =   "lambda_function.zip"                # Name of the file that stores your function. If the file is not in the current working directory you will need to include a path.module in the filename.
+
+  role = aws_iam_role.iam_for_lambda.arn            # iam role that grants permission to lambda to carryout actions on aws resources
+
+  runtime = "python3.9"                             # This defines the programming language and environment AWS should use to run your function.
+
+  handler = "lambda_function.lambda_handler"        # Specifies the function within your code that AWS Lambda should execute. It takes the form; "filename.function_name"
+
+  
+  # inject SNS topic ARN as an environment variable. This is one of the best ways to use the SNS ARN in the lambda function since we dont know what it will be prior to terraform provisioning it.
+  environment {
+    variables = {
+      SNS_TOPIC_ARN = aws_sns_topic.artisian_alerts.arn
+    }
+  }
+}
+
+
+
+
+# Create a lambda:InvokeFunction. This is important because S3 needs explicit permission to invoke Lambda.
+# When using the AWS Management Console, AWS automatically adds the required Lambda:InvokeFunction permission behind the scenes. In terraform, we need to explicitly configure it.
+
+resource "aws_lambda_permission" "allow_bucket" {
+  statement_id  = "AllowExecutionFromS3Bucket"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.artisan_app_lambda_function.function_name    # DON'T use function_arn in the place of function_name 
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.artisian_app_s3_bucket.arn     # This is the s3 bucket allowed to invoke/ trigger lambda
+}
+
+
+output "artisan_app_lambda_function_arn" {
+  value = aws_lambda_function.artisan_app_lambda_function.arn
+}

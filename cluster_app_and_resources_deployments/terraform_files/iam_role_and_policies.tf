@@ -61,7 +61,7 @@ resource "aws_iam_policy" "ssm_dynamodb_and_s3_access" {
 }
 
 
-# attach the policy to the role
+# attach the policy to the app worker node role
 resource "aws_iam_role_policy_attachment" "app_worker_node_policy_attachment" {
   role       = module.eks.self_managed_node_groups["app_worker_node"].iam_role_name
   policy_arn = aws_iam_policy.ssm_dynamodb_and_s3_access.arn
@@ -69,13 +69,57 @@ resource "aws_iam_role_policy_attachment" "app_worker_node_policy_attachment" {
   depends_on = [aws_iam_policy.ssm_dynamodb_and_s3_access]
 }
 
-# # Attach AWS Managed Policies to your worker node role
-# resource "aws_iam_role_policy_attachment" "s3_full_access" {
-#   role       = module.eks.self_managed_node_groups["app_worker_node"].iam_role_name
-#   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
-# }
 
-# resource "aws_iam_role_policy_attachment" "dynamodb_full_access" {
-#   role       = module.eks.self_managed_node_groups["app_worker_node"].iam_role_name
-#   policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
-# }
+
+
+# Create a role that grant permissions to lambda to carryout actions on SNS
+
+resource "aws_iam_role" "iam_for_lambda" {
+  name = "iam_role_for_lambda"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "lambda.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+
+
+# Policy to be attached to the lambda role above.
+# Lambda can send notifications via SNS
+
+resource "aws_iam_policy" "sns_access" {
+  name        = "s3_access"
+  description = "Allows Lambda to access s3 buckets - least privilege"
+  
+  policy = jsonencode({
+        Version = "2012-10-17",
+        Statement = [
+                  {
+                  Effect = "Allow",
+                  Action = [
+                      "sns:Publish"
+                      ],
+                  "Resource": [
+                      "${aws_sns_topic.artisian_alerts.arn}"
+                      ]
+                  }
+                  ]
+        })
+        }
+
+
+# attach s3_access policy to the lambda iam role
+resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.sns_access.arn
+}
+
+
+output "lambda_role_arn" {
+  value = aws_iam_role.iam_for_lambda.arn
+}

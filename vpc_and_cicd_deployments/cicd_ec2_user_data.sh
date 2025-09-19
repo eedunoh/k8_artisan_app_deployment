@@ -1,17 +1,22 @@
 #!/bin/bash
 
-# install cloud-utils-growpart if not already installed
-sudo yum install -y cloud-utils-growpart
+# # install cloud-utils-growpart if not already installed
+# sudo yum install -y cloud-utils-growpart
 
-# expand the partition to use all available space because we added a larger root volume (100 GB gp3).
-sudo growpart /dev/nvme0n1 1
+# # expand the partition to use all available space because we added a larger EBS root volume (100 GB gp3) to the CICD server. This will prevent low disk space errors/issues.
+# sudo growpart /dev/nvme0n1 1
 
-# resize the filesystem to fill the expanded partition
-sudo xfs_growfs -d /
+# # resize the filesystem to fill the expanded partition
+# sudo xfs_growfs -d /
 
 
 # Update system packages
 sudo yum update -y
+
+
+# Increase max virtual memory map count required by Elasticsearch/SonarQube to prevent startup errors (This caused a serious error that made sonarqube container fail and keep restarting)
+echo "vm.max_map_count=262144" >> /etc/sysctl.conf   # persist across reboots
+sysctl -w vm.max_map_count=262144                   # apply immediately for current session
 
 
 # Install Docker 

@@ -2,25 +2,22 @@ locals {
   app_worker_node_arn = module.eks.self_managed_node_groups["app_worker_node"].iam_role_arn
 }
 
+
 resource "aws_s3_bucket" "artisian_app_s3_bucket" {
     bucket = var.s3_bucket_name
 }
 
 
+# Setup s3 event notification to trigger lambda when files are added to the s3 bucket
 resource "aws_s3_bucket_notification" "bucket_notification" {
   bucket = aws_s3_bucket.artisian_app_s3_bucket.id
 
-  topic {
-    id        = "s3-object-created"
-    topic_arn = aws_sns_topic.artisian_alerts.arn
-    events    = ["s3:ObjectCreated:*"] # Example: Notify on all object creation events
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.artisan_app_lambda_function.arn
+    events              = ["s3:ObjectCreated:*"]      # Lambda is triggered when any event is created
   }
-  # Note: S3 buckets only support a single notification configuration resource.
-  # All desired event types and destinations should be configured within this single resource.
 
-  
-  depends_on = [aws_sns_topic_policy.allow_s3]
-
+  depends_on = [aws_lambda_permission.allow_bucket]     # Depends on the lambda invoke function (this is defined in the lambda function terraform file). It gives permission to the s3 bucket to invoke lambda
 }
 
 

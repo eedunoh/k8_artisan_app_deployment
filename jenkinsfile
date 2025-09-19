@@ -261,7 +261,9 @@ pipeline {
 
         always {
             echo '🔔 Pipeline finished running.'
-            cleanWs()  // Optional cleanup of workspace after each run
+            node {
+                cleanWs()
+            }
         }
     }
 }
