@@ -202,9 +202,9 @@ def submit_request():
             "user_address": address,
             "user_contact_number": contact_number,
             "service_description": description,
-            "image_s3_key": s3_key
+            "image_s3_key": s3_key,
             "requested_service_title": service_title,
-            "requested_artisan_name": artisan_name,
+            "requested_artisan_name": artisan_name
         })
 
         logger.info("Successfully saved to DynamoDB")
