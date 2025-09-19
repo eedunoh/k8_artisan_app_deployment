@@ -237,6 +237,7 @@ pipeline {
                     dir("${TERRAFORM_DIR}") {
                         sh """
                             echo "======= Terraform Destroy ======="
+                            terraform init -reconfigure
                             terraform destroy -auto-approve
                         """
                     }
