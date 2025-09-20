@@ -3,7 +3,7 @@ pipeline {
 
     // I parametized my terraform workflow
     parameters {
-        booleanParam(name: 'PRE_INFRASTRUCTURE', defaultValue: false, description: 'select this option to build all pre-infrastructure configurations like github clone, sonar and trivy scans, image build and push to docker hub')
+        booleanParam(name: 'PRE_INFRASTRUCTURE', defaultValue: false, description: 'select this option to build all pre-infrastructure configurations like Sonarqube Analysis, Trivy Scans, Image build and push to DockerHub')
         booleanParam(name: 'TERRAFORM_INIT_AND_PLAN', defaultValue: false, description: 'select this option to initialize and plan terraform configurations')
         booleanParam(name: 'TERRAFORM_APPLY', defaultValue: false, description: 'select this option to apply terraform configurations')
         booleanParam(name: 'CLUSTER_DEPLOYMENTS', defaultValue: false, description: 'select this option to deploy app and resources to k8 cluster')
