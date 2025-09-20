@@ -27,6 +27,11 @@ module "eks" {
       min_size     = 1
       max_size     = 2
       desired_size = 1
+
+      # Attach both the default SG and the new custom SG
+      additional_security_group_ids = [
+        aws_security_group.eks_worker_custom_sg.id
+      ]
     }
 
     # In this project, I intend to integrate CI/CD and monitoring tools Github Actions/Jenkins, Prometheus and Grafan. I will spin up different servers to run these tools particularly in the private subnets.
@@ -40,19 +45,43 @@ module "eks" {
 }
 
 
-# Additional Ingress Rule for worker Node
-resource "aws_security_group_rule" "allow_http_ingress" {
+# Additional Security Group and Ingress Rule for worker Node
+
+resource "aws_security_group" "eks_worker_custom_sg" {
+  name        = "eks_worker_custom_sg"
+  description = "Custom SG for HTTP/HTTPS traffic to EKS worker nodes"
+  vpc_id      = data.aws_vpc.main.id
+
+  tags = {
+    Environment = "dev"
+  }
+}
+
+
+# Allow HTTP
+resource "aws_security_group_rule" "http_ingress" {
   type              = "ingress"
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
-  security_group_id = module.eks.self_managed_node_groups["app_worker_node"].security_group_id
-  cidr_blocks       = ["0.0.0.0/0"]
-  description       = "Allow HTTP traffic to EKS worker nodes"
+  security_group_id = aws_security_group.eks_worker_custom_sg.id
+  cidr_blocks       = ["0.0.0.0/0"]   # restrict if needed
+}
+
+# Allow HTTPS
+resource "aws_security_group_rule" "https_ingress" {
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  security_group_id = aws_security_group.eks_worker_custom_sg.id
+  cidr_blocks       = ["0.0.0.0/0"]   # restrict if needed
 }
 
 
 
+
+# Outputs
 output "app_worker_node_iam_role_name" {
   value = module.eks.self_managed_node_groups["app_worker_node"].iam_role_name
 }
