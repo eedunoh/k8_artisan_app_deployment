@@ -119,6 +119,13 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   policy_arn = aws_iam_policy.sns_access.arn
 }
 
+# This gives logs:CreateLogGroup, logs:CreateLogStream, and logs:PutLogEvents — essential for debugging lambda operations
+resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+
 
 output "lambda_role_arn" {
   value = aws_iam_role.iam_for_lambda.arn

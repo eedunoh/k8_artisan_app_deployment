@@ -1,6 +1,6 @@
 # Create lambda resource
 resource "aws_lambda_function" "artisan_app_lambda_function" {
-  function_name = "static_upload_lambda_function"    
+  function_name = "artisan_app_lambda_function"    
 
   filename =   "lambda_function.zip"                # Name of the file that stores your function. If the file is not in the current working directory you will need to include a path.module in the filename.
 
@@ -31,6 +31,8 @@ resource "aws_lambda_permission" "allow_bucket" {
   function_name = aws_lambda_function.artisan_app_lambda_function.function_name    # DON'T use function_arn in the place of function_name 
   principal     = "s3.amazonaws.com"
   source_arn    = aws_s3_bucket.artisian_app_s3_bucket.arn     # This is the s3 bucket allowed to invoke/ trigger lambda
+
+  depends_on = [aws_lambda_function.artisan_app_lambda_function]
 }
 
 

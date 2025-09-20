@@ -22,7 +22,7 @@ module "eks" {
     app_worker_node = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
       ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = ["t3.medium"]
+      instance_type = ["t3.medium"]
 
       min_size     = 1
       max_size     = 2
@@ -37,6 +37,18 @@ module "eks" {
   tags = {
     Environment = "dev"
   }
+}
+
+
+# Additional Ingress Rule for worker Node
+resource "aws_security_group_rule" "allow_http_ingress" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  security_group_id = module.eks.self_managed_node_groups["app_worker_node"].security_group_id
+  cidr_blocks       = ["0.0.0.0/0"]
+  description       = "Allow HTTP traffic to EKS worker nodes"
 }
 
 
