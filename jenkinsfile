@@ -31,9 +31,6 @@ pipeline {
 
         // Clone the git repository/work area
         stage('Clone Git Repository') {
-            when {
-                expression { params.PRE_INFRASTRUCTURE }
-            }
             steps {
                 echo "Cleaning workspace and cloning gir repositoy..."
                 deleteDir()
@@ -261,9 +258,7 @@ pipeline {
 
         always {
             echo '🔔 Pipeline finished running.'
-            node {
-                cleanWs()
-            }
+            cleanWs()
         }
     }
 }
