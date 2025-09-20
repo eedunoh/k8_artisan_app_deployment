@@ -30,7 +30,7 @@ module "eks" {
 
       # Attach both the default SG and the new custom SG
       additional_security_group_ids = [
-        aws_security_group.eks_worker_custom_sg.id
+        aws_security_group.eks_app_worker_node_custom_sg.id
       ]
     }
 
@@ -47,8 +47,8 @@ module "eks" {
 
 # Additional Security Group and Ingress Rule for worker Node
 
-resource "aws_security_group" "eks_worker_custom_sg" {
-  name        = "eks_worker_custom_sg"
+resource "aws_security_group" "eks_app_worker_node_custom_sg" {
+  name        = "eks_app_worker_node_http_sg"
   description = "Custom SG for HTTP/HTTPS traffic to EKS worker nodes"
   vpc_id      = data.aws_vpc.main.id
 
@@ -64,7 +64,7 @@ resource "aws_security_group_rule" "http_ingress" {
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
-  security_group_id = aws_security_group.eks_worker_custom_sg.id
+  security_group_id = aws_security_group.eks_app_worker_node_custom_sg.id
   cidr_blocks       = ["0.0.0.0/0"]   # restrict if needed
 }
 
@@ -74,7 +74,7 @@ resource "aws_security_group_rule" "https_ingress" {
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
-  security_group_id = aws_security_group.eks_worker_custom_sg.id
+  security_group_id = aws_security_group.eks_app_worker_node_custom_sg.id
   cidr_blocks       = ["0.0.0.0/0"]   # restrict if needed
 }
 
