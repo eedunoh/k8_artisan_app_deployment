@@ -206,8 +206,8 @@ pipeline {
                             aws eks --region ${K8_CLUSTER_REGION} update-kubeconfig --name ${K8_CLUSTER_NAME}
 
 
-                            # Install Helm
-                            curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+                            # Check helm version
+                            helm version
 
 
                             # Add Helm repos
