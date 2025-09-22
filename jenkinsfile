@@ -206,9 +206,7 @@ pipeline {
                             aws eks --region ${K8_CLUSTER_REGION} update-kubeconfig --name ${K8_CLUSTER_NAME}
 
 
-                            # Check helm version
-                            export PATH=$HOME/bin:$PATH
-                            
+                            # Check helm version                            
                             helm version
 
 
@@ -220,21 +218,20 @@ pipeline {
 
                             # Install NGINX ingress controller
                             helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-                            --namespace ingress-nginx \
-                            --create-namespace \
-                            --wait --timeout 2m
+                            --namespace ingress-nginx --create-namespace \
+                            --wait --timeout 10m
+
+
+                            # Install Prometheus + Grafana stack (release name = monitoring)
+                            helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+                            --namespace monitoring --create-namespace \
+                            -f kube_prometheus_values.yml \
+                            --wait --timeout 10m
 
 
                             # Deploy application (Deployment + Service)
                             kubectl apply -f deployment-service.yml
 
-
-                            # Install Prometheus + Grafana stack (release name = monitoring)
-                            helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
-                            -f kube_prometheus_values.yml \
-                            --namespace monitoring \
-                            --create-namespace \
-                            --wait --timeout 5m
 
                             # Apply ingress rules/ paths based routing
                             kubectl apply -f ingress.yml

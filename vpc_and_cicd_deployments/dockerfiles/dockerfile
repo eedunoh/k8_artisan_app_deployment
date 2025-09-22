@@ -61,6 +61,18 @@ RUN curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubec
   && kubectl version --client \
   && rm -f kubectl
 
+
+# -------------------------------
+# Install Helm
+# -------------------------------
+ENV HELM_VERSION=v3.19.0
+
+RUN curl -fsSL https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz -o helm.tar.gz \
+  && tar -zxvf helm.tar.gz \
+  && mv linux-amd64/helm /usr/local/bin/helm \
+  && rm -rf linux-amd64 helm.tar.gz \
+  && helm version
+
 # -------------------------------
 # Switch back to Jenkins user
 # -------------------------------
