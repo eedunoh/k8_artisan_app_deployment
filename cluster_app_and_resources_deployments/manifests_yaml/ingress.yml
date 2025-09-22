@@ -11,26 +11,26 @@ spec:
   # If you want to match all hosts, the right way is to omit the host: field entirely.
 
   # - host: myapp.example.com   
-    http:
-      paths:
-      - path: /app
-        pathType: Prefix
-        backend:
-          service:
-            name: artisan-app-svc
-            port:
-              number: 80
-      - path: /grafana
-        pathType: Prefix
-        backend:
-          service:
-            name: kube-prometheus-stack-grafana
-            port:
-              number: 80
-      - path: /prometheus
-        pathType: Prefix
-        backend:
-          service:
-            name: kube-prometheus-stack-prometheus
-            port:
-              number: 80
+    - http:   # this dash is required — each rule is an item in the list
+        paths:
+          - path: /app
+            pathType: Prefix
+            backend:
+              service:
+                name: artisan-app-svc
+                port:
+                  number: 80
+          - path: /grafana
+            pathType: Prefix
+            backend:
+              service:
+                name: kube-prometheus-stack-grafana
+                port:
+                  number: 80
+          - path: /prometheus
+            pathType: Prefix
+            backend:
+              service:
+                name: kube-prometheus-stack-prometheus
+                port:
+                  number: 80
