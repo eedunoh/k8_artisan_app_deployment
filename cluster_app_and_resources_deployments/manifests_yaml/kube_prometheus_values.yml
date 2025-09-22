@@ -3,14 +3,14 @@ grafana:
   service:
     type: ClusterIP                         # Service type (ClusterIP keeps it internal, will be exposed via Ingress or port-forward)
   nodeSelector:
-    node-role.kubernetes.io/monitoring: "true"  # Ensures Grafana pods are scheduled only on nodes labeled for monitoring
+    "node-role.kubernetes.io/monitoring": "true"  # Ensures Grafana pods are scheduled only on nodes labeled for monitoring
 
 prometheus:
   service:
     type: ClusterIP                         # Internal service type for Prometheus (same reasoning as Grafana)
   prometheusSpec:                           # Prometheus operator CRD configuration (custom resource definition)
     nodeSelector:
-      node-role.kubernetes.io/monitoring: "true"  # Schedule Prometheus pods on monitoring nodes only
+      "node-role.kubernetes.io/monitoring": "true"  # Schedule Prometheus pods on monitoring nodes only
     retention: 15d                          # Keep metrics data for 15 days before automatic deletion
     storageSpec:                            
       volumeClaimTemplate:                  
