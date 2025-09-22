@@ -207,6 +207,8 @@ pipeline {
 
 
                             # Check helm version
+                            export PATH=$HOME/bin:$PATH
+                            
                             helm version
 
 
