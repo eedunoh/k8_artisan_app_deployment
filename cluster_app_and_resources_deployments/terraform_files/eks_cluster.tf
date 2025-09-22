@@ -28,7 +28,7 @@ module "eks" {
       max_size     = 2
       desired_size = 1
 
-
+       enable_bootstrap_user_data = true   # ✅ force user_data to be injected
 
       # For self-managed EKS nodes, bootstrap_extra_args passes labels during node registration via /etc/eks/bootstrap.sh, ensuring nodes join the cluster already labeled. 
       # The labels {} block in Terraform doesn’t affect self-managed nodes because EKS doesn’t control their bootstrap. 
@@ -46,6 +46,7 @@ module "eks" {
       max_size     = 2
       desired_size = 1
 
+      enable_bootstrap_user_data = true   # ✅ force user_data to be injected
 
       # For self-managed EKS nodes, bootstrap_extra_args passes labels during node registration via /etc/eks/bootstrap.sh, ensuring nodes join the cluster already labeled. 
       # The labels {} block in Terraform doesn’t affect self-managed nodes because EKS doesn’t control their bootstrap. 
