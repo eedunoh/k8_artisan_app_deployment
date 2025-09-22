@@ -14,7 +14,8 @@ prometheus:
     retention: 15d                          # Keep metrics data for 15 days before automatic deletion
     storageSpec:                            
       volumeClaimTemplate:                  
-        spec:                               
+        spec:  
+          storageClassName: gp2                             
           accessModes: ["ReadWriteOnce"]    # Volume can be mounted by only one node at a time
           resources:                        # Resource requests for the volume
             requests:
