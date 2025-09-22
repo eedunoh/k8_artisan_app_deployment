@@ -207,7 +207,7 @@ pipeline {
 
 
                             # Install Helm
-                            curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sudo bash
+                            curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
 
                             # Add Helm repos
