@@ -194,7 +194,6 @@ pipeline {
             when {
                 expression { params.CLUSTER_DEPLOYMENTS }
             }
-
             steps {
                 echo "🚀 Deploying application and resources to Kubernetes cluster..."
                 withCredentials([[
@@ -203,22 +202,46 @@ pipeline {
                 ]]) {
                     dir("${MANIFESTS_DIR}") {
                         sh """
-                            # Set up the kubeconfig for the EKS cluster
+                            # Set up kubeconfig for EKS
                             aws eks --region ${K8_CLUSTER_REGION} update-kubeconfig --name ${K8_CLUSTER_NAME}
 
 
-                            # Check current context
-                            echo "Current context after setup:"
-                            kubectl config current-context
+                            # Install Helm
+                            curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sudo bash
 
 
-                            # Now apply the manifests
-                            kubectl apply -f .
+                            # Add Helm repos
+                            helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+                            helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+                            helm repo update
+
+
+                            # Install NGINX ingress controller
+                            helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+                            --namespace ingress-nginx \
+                            --create-namespace \
+                            --wait --timeout 2m
+
+
+                            # Deploy application (Deployment + Service)
+                            kubectl apply -f deployment-service.yml
+
+
+                            # Install Prometheus + Grafana stack (release name = monitoring)
+                            helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+                            -f kube_prometheus_values.yml \
+                            --namespace monitoring \
+                            --create-namespace \
+                            --wait --timeout 5m
+
+                            # Apply ingress rules/ paths based routing
+                            kubectl apply -f ingress.yml
                         """
                     }
                 }
             }
-        }        
+        }
+
 
 
         stage('Terraform Destroy') {

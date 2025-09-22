@@ -28,13 +28,35 @@ module "eks" {
       max_size     = 2
       desired_size = 1
 
-      # Attach both the default SG and the new custom SG
-      additional_security_group_ids = [
-        aws_security_group.eks_app_worker_node_custom_sg.id
-      ]
+
+
+      # This is a labeling convention for node roles and marks the nodes.
+      # It makes your setup consistent with Kubernetes standards, even though you could technically use any label (node-role=app works just fine too). 
+      # Using this style helps avoid confusion and integrates smoothly with Kubernetes tooling.
+      labels = {
+        node-role.kubernetes.io/app = "true"
+      }
+
     }
 
-    # In this project, I intend to integrate CI/CD and monitoring tools Github Actions/Jenkins, Prometheus and Grafan. I will spin up different servers to run these tools particularly in the private subnets.
+    monitoring_node = {
+      # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
+      ami_type       = "AL2023_x86_64_STANDARD"
+      instance_type = "t3.medium"
+
+      min_size     = 1
+      max_size     = 2
+      desired_size = 1
+
+
+      # This is a labeling convention for node roles and marks the nodes.
+      # It makes your setup consistent with Kubernetes standards, even though you could technically use any label (node-role=monitoring works just fine too). 
+      # Using this style helps avoid confusion and integrates smoothly with Kubernetes tooling.
+      labels = {
+        node-role.kubernetes.io/monitoring = "true"
+      }
+
+    }
     
   }
 
@@ -56,28 +78,6 @@ resource "aws_security_group" "eks_app_worker_node_custom_sg" {
     Environment = "dev"
   }
 }
-
-
-# Allow HTTP
-resource "aws_security_group_rule" "http_ingress" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  security_group_id = aws_security_group.eks_app_worker_node_custom_sg.id
-  cidr_blocks       = ["0.0.0.0/0"]   # restrict if needed
-}
-
-# Allow HTTPS
-resource "aws_security_group_rule" "https_ingress" {
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  security_group_id = aws_security_group.eks_app_worker_node_custom_sg.id
-  cidr_blocks       = ["0.0.0.0/0"]   # restrict if needed
-}
-
 
 
 

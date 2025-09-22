@@ -1,0 +1,39 @@
+grafana:
+  adminPassword: "ThisIsATestPassword654@"   # Sets Grafana admin login password (default user = admin). Note the capital "P"
+  service:
+    type: ClusterIP                         # Service type (ClusterIP keeps it internal, will be exposed via Ingress or port-forward)
+  nodeSelector:
+    node-role.kubernetes.io/monitoring: "true"  # Ensures Grafana pods are scheduled only on nodes labeled for monitoring
+
+prometheus:
+  service:
+    type: ClusterIP                         # Internal service type for Prometheus (same reasoning as Grafana)
+  prometheusSpec:                           # Prometheus operator CRD configuration (custom resource definition)
+    nodeSelector:
+      node-role.kubernetes.io/monitoring: "true"  # Schedule Prometheus pods on monitoring nodes only
+    retention: 15d                          # Keep metrics data for 15 days before automatic deletion
+    storageSpec:                            
+      volumeClaimTemplate:                  
+        spec:                               
+          accessModes: ["ReadWriteOnce"]    # Volume can be mounted by only one node at a time
+          resources:                        # Resource requests for the volume
+            requests:
+              storage: 20Gi                 # Allocate 20Gi of persistent storage for metrics
+
+
+
+
+
+# How Grafana gets data from Prometheus
+
+# Prometheus runs as a service inside your cluster (e.g., kube-prometheus-stack-prometheus).
+ # It scrapes metrics from the Kubernetes API, kubelet, node exporter, etc.
+ # It stores the metrics in its TSDB (time series database).
+
+# Grafana is deployed alongside Prometheus.
+ # The Helm chart automatically creates a Grafana datasource pointing to the Prometheus service URL inside the cluster.
+ # This means Grafana knows how to reach Prometheus without you configuring anything.
+
+# Dashboards
+ # The chart also pre-loads a bunch of Kubernetes dashboards into Grafana.
+ # When you log in to Grafana, you’ll already see cluster/node/pod-level dashboards powered by Prometheus.

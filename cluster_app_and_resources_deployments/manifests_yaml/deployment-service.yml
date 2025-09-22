@@ -1,4 +1,3 @@
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,13 +11,20 @@ spec:
     metadata:
       labels:
         app: artisan-app   # Pod label
-    spec:
+    spec:                  # only ONE spec block inside template
+      nodeSelector:        # ensure pods land on nodes with defined node label
+        node-role.kubernetes.io/app: "true"
       containers:
         - name: artisan-app
           image: jackedu/artisan_app:latest
           ports:
             - containerPort: 80
+            
 ---
+# N/B: For a Service, the selector always matches Pod labels, not Node labels. Here’s why:
+# Services route traffic to Pods, not to Nodes directly.
+# Kubernetes looks at the Pod labels defined in the Deployment → template.metadata.labels.
+# The nodeSelector only decides where the Pods get scheduled, but the Service doesn’t care about nodes — it only sees Pods.
 
 apiVersion: v1
 kind: Service
@@ -31,4 +37,4 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
-  type: LoadBalancer
+  type: ClusterIP
