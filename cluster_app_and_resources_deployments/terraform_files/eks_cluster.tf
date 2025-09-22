@@ -34,7 +34,7 @@ module "eks" {
       # It makes your setup consistent with Kubernetes standards, even though you could technically use any label (node-role=app works just fine too). 
       # Using this style helps avoid confusion and integrates smoothly with Kubernetes tooling.
       labels = {
-        node-role.kubernetes.io/app = "true"
+        "node-role.kubernetes.io/app" = "true"
       }
 
     }
@@ -53,7 +53,7 @@ module "eks" {
       # It makes your setup consistent with Kubernetes standards, even though you could technically use any label (node-role=monitoring works just fine too). 
       # Using this style helps avoid confusion and integrates smoothly with Kubernetes tooling.
       labels = {
-        node-role.kubernetes.io/monitoring = "true"
+        "node-role.kubernetes.io/monitoring" = "true"
       }
 
     }
