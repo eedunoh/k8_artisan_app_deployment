@@ -91,3 +91,8 @@ output "app_worker_node_iam_role_name" {
 output "app_worker_node_iam_role_arn" {
   value = module.eks.self_managed_node_groups["app_worker_node"].iam_role_arn
 }
+
+
+output "monitoring_node_userdata" {
+  value = module.eks.self_managed_node_groups["monitoring_node"].launch_template[0].user_data
+}
