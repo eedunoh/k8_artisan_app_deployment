@@ -246,7 +246,6 @@ pipeline {
 
                     # Install Prometheus + Grafana stack (release name = monitoring)
                     helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \\
-                    --namespace monitoring --create-namespace \\
                     -f kube_prometheus_values.yml \\
                     --wait --timeout 10m
 
