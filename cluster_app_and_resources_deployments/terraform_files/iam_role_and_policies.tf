@@ -162,14 +162,14 @@ resource "aws_iam_policy" "ebs_csi_operation" {
 # attach the policy to the app monitoring and app_worker node roles
 # Kubernetes could provision the PVC using a different node’s IAM role. This comes down to how WaitForFirstConsumer and CSI dynamic provisioning work in EKS. 
 # So its best to attch the policy to both node roles.
-resource "aws_iam_role_policy_attachment" "ebs_csi_operation_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "ebs_csi_operation_policy_attachment_node1" {
   role       = module.eks.self_managed_node_groups["monitoring_node"].iam_role_name
   policy_arn = aws_iam_policy.ebs_csi_operation.arn
 
   depends_on = [aws_iam_policy.ebs_csi_operation]
 }
 
-resource "aws_iam_role_policy_attachment" "ebs_csi_operation_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "ebs_csi_operation_policy_attachment_node2" {
   role       = module.eks.self_managed_node_groups["app_worker_node"].iam_role_name
   policy_arn = aws_iam_policy.ebs_csi_operation.arn
 
