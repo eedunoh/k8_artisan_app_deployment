@@ -16,29 +16,29 @@ spec:
   # - host: myapp.example.com   
   - http:
       paths:
-        # Grafana first
-        - path: /grafana(/|$)(.*)
-          pathType: Prefix
-          backend:
-            service:
-              name: monitoring-grafana
-              port:
-                number: 80
+      # Grafana
+      - path: /grafana(/|$)(.*)
+        pathType: ImplementationSpecific  # ✅ Changed from Prefix
+        backend:
+          service:
+            name: monitoring-grafana
+            port:
+              number: 80
 
-        # Prometheus second
-        - path: /prometheus(/|$)(.*)
-          pathType: Prefix
-          backend:
-            service:
-              name: monitoring-kube-prometheus-prometheus
-              port:
-                number: 9090
+      # Prometheus
+      - path: /prometheus(/|$)(.*)
+        pathType: ImplementationSpecific  # ✅ Changed from Prefix
+        backend:
+          service:
+            name: monitoring-kube-prometheus-prometheus
+            port:
+              number: 9090
 
-        # Main app last
-        - path: /(.*)
-          pathType: Prefix
-          backend:
-            service:
-              name: artisan-app-svc
-              port:
-                number: 80
+      # Main app
+      - path: /(.*)
+        pathType: ImplementationSpecific  # ✅ Changed from Prefix
+        backend:
+          service:
+            name: artisan-app-svc
+            port:
+              number: 80
