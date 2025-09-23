@@ -148,7 +148,9 @@ resource "aws_iam_policy" "ebs_csi_operation" {
                       "ec2:DetachVolume",
                       "ec2:ModifyVolume",
                       "ec2:DescribeInstances",
-                      "ec2:DescribeTags"
+                      "ec2:DescribeTags",
+                      "ec2:CreateTags",
+                      "ec2:DeleteTags"
                   ],
                   "Resource": "*"
               }
