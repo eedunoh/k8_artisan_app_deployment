@@ -1,5 +1,6 @@
 grafana:
   adminPassword: "ThisIsATestPassword654@"   # Sets Grafana admin login password
+  # username: "admin"
   service:
     type: ClusterIP
     port: 80        # the port exposed by the Service
