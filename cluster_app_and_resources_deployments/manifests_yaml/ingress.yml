@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: artisan-app-ingress
   annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx # Specifies the Ingress Controller to use
   rules:
