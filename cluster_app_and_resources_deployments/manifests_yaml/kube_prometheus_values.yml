@@ -1,26 +1,21 @@
 grafana:
   adminPassword: "ThisIsATestPassword654@"   # Sets Grafana admin login password
   service:
-    type: ClusterIP                         # Expose via Ingress or port-forward
+    type: ClusterIP
+    port: 80        # the port exposed by the Service
+    targetPort: 3000  # the port Grafana container listens on
   nodeSelector:
     role: monitoring_node                   # Schedule only on monitoring nodes
   grafana.ini:
     server:
       root_url: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
       serve_from_sub_path: true             # Required for /grafana path
-    analytics:
-      check_for_updates: true
-    log:
-      mode: console
-    paths:
-      data: /var/lib/grafana
-      logs: /var/log/grafana
-      plugins: /var/lib/grafana/plugins
-      provisioning: /etc/grafana/provisioning
 
 prometheus:
   service:
-    type: ClusterIP                         # Internal service type
+    type: ClusterIP
+    port: 9090        # The port exposed by the Service
+    targetPort: 9090  # The port Prometheus container listens on
   prometheusSpec:                           
     replicas: 1
     nodeSelector:
