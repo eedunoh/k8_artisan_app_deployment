@@ -131,8 +131,8 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
 # This policy is needed to address this situation.
 
 resource "aws_iam_policy" "ebs_csi_operation" {
-  name        = "s3_access"
-  description = "Allows Lambda to access s3 buckets - least privilege"
+  name        = "ebs_csi_operation"
+  description = "Allows EBS CSI driver provision volume in AWS - to be used by prometheus"
   
   policy = jsonencode({
           "Version": "2012-10-17",
