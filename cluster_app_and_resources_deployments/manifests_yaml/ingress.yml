@@ -13,7 +13,7 @@ spec:
   # - host: myapp.example.com   
     - http:   # this dash is required — each rule is an item in the list
         paths:
-          - path: /app
+          - path: /
             pathType: Prefix
             backend:
               service:
