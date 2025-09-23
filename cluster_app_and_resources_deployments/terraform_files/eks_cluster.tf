@@ -35,11 +35,8 @@ module "eks" {
       create_launch_template     = true
       enable_bootstrap_user_data = false # we’ll override
 
-      launch_template_user_data = <<-EOT
-        #!/bin/bash
-        /etc/eks/bootstrap.sh ${var.eks_cluster_name} \
-          --kubelet-extra-args '--node-labels=role=app,type=worker,env=prod'
-      EOT
+      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=role=app,type=worker,env=prod'"
+
     }
 
     monitoring_node = {
@@ -58,11 +55,7 @@ module "eks" {
       create_launch_template     = true
       enable_bootstrap_user_data = false # we’ll override
 
-      launch_template_user_data = <<-EOT
-        #!/bin/bash
-        /etc/eks/bootstrap.sh ${var.eks_cluster_name} \
-          --kubelet-extra-args '--node-labels=role=monitoring,type=infra,env=prod'
-      EOT
+      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=role=monitoring,type=infra,env=prod'"
 
     }
     
