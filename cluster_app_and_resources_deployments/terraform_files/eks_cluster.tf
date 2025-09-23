@@ -28,15 +28,18 @@ module "eks" {
       max_size     = 2
       desired_size = 1
 
-      enable_bootstrap_user_data = true   # ✅ force user_data to be injected
-      create_launch_template     = true   # ✅
-
       # For self-managed EKS nodes, bootstrap_extra_args passes labels during node registration via /etc/eks/bootstrap.sh, ensuring nodes join the cluster already labeled. 
       # The labels {} block in Terraform doesn’t affect self-managed nodes because EKS doesn’t control their bootstrap. 
       # Without bootstrap_extra_args, pods using nodeSelector may fail to schedule correctly.
-        bootstrap_extra_args = <<-EOT
+
+      create_launch_template     = true
+      enable_bootstrap_user_data = false # we’ll override
+
+      launch_template_user_data = <<-EOT
+        #!/bin/bash
+        /etc/eks/bootstrap.sh ${var.eks_cluster_name} \
           --kubelet-extra-args '--node-labels=role=app,type=worker,env=prod'
-        EOT
+      EOT
     }
 
     monitoring_node = {
@@ -48,16 +51,18 @@ module "eks" {
       max_size     = 2
       desired_size = 1
 
-      enable_bootstrap_user_data = true   # ✅ force user_data to be injected
-      create_launch_template     = true   # ✅
-
       # For self-managed EKS nodes, bootstrap_extra_args passes labels during node registration via /etc/eks/bootstrap.sh, ensuring nodes join the cluster already labeled. 
       # The labels {} block in Terraform doesn’t affect self-managed nodes because EKS doesn’t control their bootstrap. 
       # Without bootstrap_extra_args, pods using nodeSelector may fail to schedule correctly.
 
-        bootstrap_extra_args = <<-EOT
+      create_launch_template     = true
+      enable_bootstrap_user_data = false # we’ll override
+
+      launch_template_user_data = <<-EOT
+        #!/bin/bash
+        /etc/eks/bootstrap.sh ${var.eks_cluster_name} \
           --kubelet-extra-args '--node-labels=role=monitoring,type=infra,env=prod'
-        EOT
+      EOT
 
     }
     
