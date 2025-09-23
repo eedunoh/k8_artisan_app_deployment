@@ -236,6 +236,10 @@ pipeline {
                     --wait --timeout 10m
 
 
+                    # Install EBS CSI driver so Kubernetes can dynamically provision EBS volumes for PVC else PVC will remain in Pending state
+                    kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.25"
+
+
                     # Deploy application (Deployment + Service)
                     kubectl apply -f deployment-service.yml
 
