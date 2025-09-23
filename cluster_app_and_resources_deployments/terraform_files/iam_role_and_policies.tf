@@ -127,6 +127,55 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
 
 
 
+# The PVC for Prometheus is stuck in Pending because the EBS CSI driver is trying to provision a volume in AWS, but the EC2 role of the monitoring node does not have permission to create EBS volumes.
+# This policy is needed to address this situation.
+
+resource "aws_iam_policy" "ebs_csi_operation" {
+  name        = "s3_access"
+  description = "Allows Lambda to access s3 buckets - least privilege"
+  
+  policy = jsonencode({
+          "Version": "2012-10-17",
+          "Statement": [
+              {
+                  "Effect": "Allow",
+                  "Action": [
+                      "ec2:CreateVolume",
+                      "ec2:AttachVolume",
+                      "ec2:DeleteVolume",
+                      "ec2:DescribeVolumes",
+                      "ec2:DescribeVolumeStatus",
+                      "ec2:DetachVolume",
+                      "ec2:ModifyVolume",
+                      "ec2:DescribeInstances",
+                      "ec2:DescribeTags"
+                  ],
+                  "Resource": "*"
+              }
+          ]
+      })
+        }
+
+
+# attach the policy to the app monitoring node role
+resource "aws_iam_role_policy_attachment" "ebs_csi_operation_policy_attachment" {
+  role       = module.eks.self_managed_node_groups["monitoring_node"].iam_role_name
+  policy_arn = aws_iam_policy.ebs_csi_operation.arn
+
+  depends_on = [aws_iam_policy.ebs_csi_operation]
+}
+
+
+
+
+
+
+
+
+
+
+
+
 output "lambda_role_arn" {
   value = aws_iam_role.iam_for_lambda.arn
 }
