@@ -33,8 +33,9 @@ module "eks" {
       # For self-managed EKS nodes, bootstrap_extra_args passes labels during node registration via /etc/eks/bootstrap.sh, ensuring nodes join the cluster already labeled. 
       # The labels {} block in Terraform doesn’t affect self-managed nodes because EKS doesn’t control their bootstrap. 
       # Without bootstrap_extra_args, pods using nodeSelector may fail to schedule correctly.
-      bootstrap_extra_args = "--node-labels=role=app,type=worker,env=prod"
-
+        bootstrap_extra_args = <<-EOT
+          --kubelet-extra-args '--node-labels=role=app,type=worker,env=prod'
+        EOT
     }
 
     monitoring_node = {
@@ -51,7 +52,10 @@ module "eks" {
       # For self-managed EKS nodes, bootstrap_extra_args passes labels during node registration via /etc/eks/bootstrap.sh, ensuring nodes join the cluster already labeled. 
       # The labels {} block in Terraform doesn’t affect self-managed nodes because EKS doesn’t control their bootstrap. 
       # Without bootstrap_extra_args, pods using nodeSelector may fail to schedule correctly.
-      bootstrap_extra_args = "--node-labels=role=monitoring,type=infra,env=prod"
+
+        bootstrap_extra_args = <<-EOT
+          --kubelet-extra-args '--node-labels=role=monitoring,type=infra,env=prod'
+        EOT
 
     }
     
