@@ -1,44 +1,35 @@
 grafana:
-  adminPassword: "ThisIsATestPassword654@"   # Sets Grafana admin login password (default user = admin). Note the capital "P"
+  adminPassword: "ThisIsATestPassword654@"   # Sets Grafana admin login password
   service:
-    type: ClusterIP                         # Service type (ClusterIP keeps it internal, will be exposed via Ingress or port-forward)
+    type: ClusterIP                         # Expose via Ingress or port-forward
   nodeSelector:
-    role: monitoring_node                   # Ensures Grafana pods are scheduled only on nodes labeled for monitoring
+    role: monitoring_node                   # Schedule only on monitoring nodes
   grafana.ini:
-  server:
-    root_url: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
+    server:
+      root_url: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
+    analytics:
+      check_for_updates: true
+    log:
+      mode: console
+    paths:
+      data: /var/lib/grafana
+      logs: /var/log/grafana
+      plugins: /var/lib/grafana/plugins
+      provisioning: /etc/grafana/provisioning
 
 prometheus:
   service:
-    type: ClusterIP                         # Internal service type for Prometheus (same reasoning as Grafana)
-  prometheusSpec:                           # Prometheus operator CRD configuration (custom resource definition)
+    type: ClusterIP                         # Internal service type
+  prometheusSpec:                           
     replicas: 1
     nodeSelector:
-      role: monitoring_node                 # Schedule Prometheus pods on monitoring nodes only
-    retention: 15d                          # Keep metrics data for 15 days before automatic deletion
+      role: monitoring_node                 # Schedule only on monitoring nodes
+    retention: 15d                          # Keep metrics data for 15 days
     storageSpec:                            
       volumeClaimTemplate:                  
         spec:  
           storageClassName: gp2                             
-          accessModes: ["ReadWriteOnce"]    # Volume can be mounted by only one node at a time
-          resources:                        # Resource requests for the volume
+          accessModes: ["ReadWriteOnce"]    # Volume mounted by one node at a time
+          resources:                        
             requests:
-              storage: 20Gi                 # Allocate 20Gi of persistent storage for metrics
-
-
-
-
-
-# How Grafana gets data from Prometheus
-
-# Prometheus runs as a service inside your cluster (e.g., kube-prometheus-stack-prometheus).
- # It scrapes metrics from the Kubernetes API, kubelet, node exporter, etc.
- # It stores the metrics in its TSDB (time series database).
-
-# Grafana is deployed alongside Prometheus.
- # The Helm chart automatically creates a Grafana datasource pointing to the Prometheus service URL inside the cluster.
- # This means Grafana knows how to reach Prometheus without you configuring anything.
-
-# Dashboards
- # The chart also pre-loads a bunch of Kubernetes dashboards into Grafana.
- # When you log in to Grafana, you’ll already see cluster/node/pod-level dashboards powered by Prometheus.
+              storage: 20Gi                 # Allocate 20Gi of persistent storage
