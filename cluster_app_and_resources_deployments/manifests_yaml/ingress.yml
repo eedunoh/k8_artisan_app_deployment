@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: artisan-app-ingress
   annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+
 spec:
   ingressClassName: nginx # Specifies the Ingress Controller to use
   rules:
@@ -13,17 +15,8 @@ spec:
   # - host: myapp.example.com   
     - http:
         paths:
-          # Main app
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: artisan-app-svc
-                port:
-                  number: 80
-
-          # Grafana
-          - path: /grafana
+          # Grafana first
+          - path: /grafana(/|$)(.*)
             pathType: Prefix
             backend:
               service:
@@ -31,11 +24,20 @@ spec:
                 port:
                   number: 80
 
-          # Prometheus
-          - path: /prometheus
+          # Prometheus second
+          - path: /prometheus(/|$)(.*)
             pathType: Prefix
             backend:
               service:
                 name: monitoring-kube-prometheus-prometheus
                 port:
                   number: 9090
+
+          # Main app last
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: artisan-app-svc
+                port:
+                  number: 80
