@@ -3,14 +3,14 @@ grafana:
   service:
     type: ClusterIP                         # Service type (ClusterIP keeps it internal, will be exposed via Ingress or port-forward)
   nodeSelector:
-    role: monitoring                        # Ensures Grafana pods are scheduled only on nodes labeled for monitoring
+    role: monitoring_node                   # Ensures Grafana pods are scheduled only on nodes labeled for monitoring
 
 prometheus:
   service:
     type: ClusterIP                         # Internal service type for Prometheus (same reasoning as Grafana)
   prometheusSpec:                           # Prometheus operator CRD configuration (custom resource definition)
     nodeSelector:
-      role: monitoring                      # Schedule Prometheus pods on monitoring nodes only
+      role: monitoring_node                 # Schedule Prometheus pods on monitoring nodes only
     retention: 15d                          # Keep metrics data for 15 days before automatic deletion
     storageSpec:                            
       volumeClaimTemplate:                  

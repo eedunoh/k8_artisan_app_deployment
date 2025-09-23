@@ -202,39 +202,53 @@ pipeline {
                 ]]) {
                     dir("${MANIFESTS_DIR}") {
                         sh """
-                            # Set up kubeconfig for EKS
-                            aws eks --region ${K8_CLUSTER_REGION} update-kubeconfig --name ${K8_CLUSTER_NAME}
+                     # Set up kubeconfig for EKS
+                    aws eks --region ${K8_CLUSTER_REGION} update-kubeconfig --name ${K8_CLUSTER_NAME}
 
 
-                            # Check helm version                            
-                            helm version
+                    # Label nodes based on EC2 Name tag
+                    aws ec2 describe-instances \\
+                      --filters "Name=instance-state-name,Values=running" \\
+                      --query "Reservations[*].Instances[*].[InstanceId, Tags[?Key=='Name'].Value | [0]]" \\
+                      --output text | while read i n; do
+                        for node in \$(kubectl get nodes -o json | jq -r ".items[] | select(.spec.providerID != null) | .metadata.name"); do
+                          if kubectl get node "\$node" -o jsonpath="{.spec.providerID}" | grep -q "\$i"; then
+                            kubectl label node "\$node" "role=\$n" --overwrite
+                            echo "Labeled \$node as role=\$n"
+                          fi
+                        done
+                    done
 
 
-                            # Add Helm repos
-                            helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-                            helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-                            helm repo update
+                    # Check helm version                            
+                    helm version
 
 
-                            # Install NGINX ingress controller
-                            helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-                            --namespace ingress-nginx --create-namespace \
-                            --wait --timeout 10m
+                    # Add Helm repos
+                    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+                    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+                    helm repo update
 
 
-                            # Deploy application (Deployment + Service)
-                            kubectl apply -f deployment-service.yml
+                    # Install NGINX ingress controller
+                    helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \\
+                    --namespace ingress-nginx --create-namespace \\
+                    --wait --timeout 10m
 
 
-                            # Install Prometheus + Grafana stack (release name = monitoring)
-                            helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
-                            --namespace monitoring --create-namespace \
-                            -f kube_prometheus_values.yml \
-                            --wait --timeout 10m
+                    # Deploy application (Deployment + Service)
+                    kubectl apply -f deployment-service.yml
 
 
-                            # Apply ingress rules/ paths based routing
-                            kubectl apply -f ingress.yml
+                    # Install Prometheus + Grafana stack (release name = monitoring)
+                    helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \\
+                    --namespace monitoring --create-namespace \\
+                    -f kube_prometheus_values.yml \\
+                    --wait --timeout 10m
+
+
+                    # Apply ingress rules/ paths based routing
+                    kubectl apply -f ingress.yml
                         """
                     }
                 }
