@@ -33,9 +33,11 @@ module "eks" {
       # Without bootstrap_extra_args, pods using nodeSelector may fail to schedule correctly.
 
       create_launch_template     = true
-      enable_bootstrap_user_data = false # we’ll override
+      enable_bootstrap_user_data = true
 
       bootstrap_extra_args = "--kubelet-extra-args '--node-labels=role=app,type=worker,env=prod'"
+
+      force_update_version = true # ensures nodes roll when template changes\
 
     }
 
@@ -53,9 +55,11 @@ module "eks" {
       # Without bootstrap_extra_args, pods using nodeSelector may fail to schedule correctly.
 
       create_launch_template     = true
-      enable_bootstrap_user_data = false # we’ll override
+      enable_bootstrap_user_data = true
 
       bootstrap_extra_args = "--kubelet-extra-args '--node-labels=role=monitoring,type=infra,env=prod'"
+
+      force_update_version = true # ensures nodes roll when template changes
 
     }
     
