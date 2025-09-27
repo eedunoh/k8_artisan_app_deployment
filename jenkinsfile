@@ -258,6 +258,25 @@ pipeline {
             }
         }
 
+        // we add TLS secret to store our origin TLS certificate. This looks to be the best way to do this compared to manually creating a manifest and adding the .pem files which could be esposed.
+        stage('Deploy TLS Secret') {
+            when {
+                expression { params.CLUSTER_DEPLOYMENTS }
+            }
+            steps { 
+                withCredentials([ 
+                    file(credentialsId: 'cloudflare-cert', variable: 'CERT'), 
+                    file(credentialsId: 'cloudflare-key', variable: 'KEY') 
+                    ]) { 
+                        sh ''' kubectl create secret tls cloudflare-origin-cert \ 
+                        --cert=$CERT \ 
+                        --key=$KEY \ 
+                        --dry-run=client -o yaml | kubectl apply -f - 
+                    ''' 
+                    } 
+                } 
+            } 
+
 
 
         stage('Terraform Destroy') {

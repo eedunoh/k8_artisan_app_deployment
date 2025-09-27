@@ -4,15 +4,20 @@ metadata:
   name: artisan-app-ingress
 spec:
   ingressClassName: nginx # Specifies the Ingress Controller to use
+  tls:
+    hosts:
+      - builtbyedunoh.com
+      - www.builtbyedunoh.com
+    secretName: cloudflare-origin-cert
   rules:
 
   # If you want to use Nginx ingress controller but don’t yet have a custom domain name (DNS), you should remove the host: parameter from your Ingress YAML so that it can use the ELB domain name.
   # If you want to match all hosts, the right way is to omit the host: field entirely.
 
-  # - host: myapp.example.com   
-  - http:
+# Main artisan app 
+  - host: www.builtbyedunoh.com
+    http:
       paths:
-        # Main app
         - path: /
           pathType: Prefix
           backend:
@@ -20,7 +25,11 @@ spec:
               name: artisan-app-svc
               port:
                 number: 80
-        # Grafana
+                
+  # Grafana
+  - host: www.builtbyedunoh.com
+    http:
+      paths:
         - path: /grafana
           pathType: Prefix
           backend:
