@@ -203,7 +203,7 @@ pipeline {
                     credentialsId: 'my_aws_credentials'
                 ]]) {
                     dir("${MANIFESTS_DIR}") {
-                        sh """
+                        sh '''
                      # Set up kubeconfig for EKS
                     aws eks --region ${K8_CLUSTER_REGION} update-kubeconfig --name ${K8_CLUSTER_NAME}
 
@@ -271,7 +271,7 @@ pipeline {
 
                     # Apply ingress rules/ paths based routing
                     kubectl apply -f ingress.yml
-                        """
+                        '''
                     }
                 }
             }
