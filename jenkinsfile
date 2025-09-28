@@ -11,16 +11,18 @@ pipeline {
     }
 
     environment {
-        APP_FOLDER = 'cluster_app_and_resources_deployments/app_folder'
-        IMAGE_NAME = 'jackedu/artisan_app'
-        IMAGE_TAG = 'latest'
-        GIT_URL = 'https://github.com/eedunoh/k8_artisan_app_deployment.git'
-        K8_CLUSTER_NAME = 'artisian_app_cluster'
-        K8_CLUSTER_REGION = 'eu-north-1'
-        MANIFESTS_DIR = 'cluster_app_and_resources_deployments/manifests_yaml'
-        TERRAFORM_DIR = 'cluster_app_and_resources_deployments/terraform_files'
-        TF_PLAN_FILE = 'tfplan.binary'
-        SONAR_PROJECT_NAME = 'artisan_app_sonar'
+        APP_FOLDER='cluster_app_and_resources_deployments/app_folder'
+        IMAGE_NAME='jackedu/artisan_app'
+        IMAGE_TAG='latest'
+        GIT_URL='https://github.com/eedunoh/k8_artisan_app_deployment.git'
+        K8_CLUSTER_NAME='artisian_app_cluster'
+        K8_CLUSTER_REGION='eu-north-1'
+        MANIFESTS_DIR='cluster_app_and_resources_deployments/manifests_yaml'
+        TERRAFORM_DIR='cluster_app_and_resources_deployments/terraform_files'
+        TF_PLAN_FILE='tfplan.binary'
+        SONAR_PROJECT_NAME='artisan_app_sonar'
+        EKS_APP_NODE='app_worker_node' 
+        EKS_MONITORING_NODE='monitoring_node'
 
         // tool 'sonar-scanner' - is a Jenkins command that means: "Go find where the program named 'sonar-scanner' is installed on this computer.
         SCANNER_HOME = tool 'sonar-scanner'
@@ -206,17 +208,34 @@ pipeline {
                     aws eks --region ${K8_CLUSTER_REGION} update-kubeconfig --name ${K8_CLUSTER_NAME}
 
 
-                    # Label nodes based on EC2 Name tag
-                    aws ec2 describe-instances \\
-                      --filters "Name=instance-state-name,Values=running" \\
-                      --query "Reservations[*].Instances[*].[InstanceId, Tags[?Key=='Name'].Value | [0]]" \\
-                      --output text | while read i n; do
-                        for node in \$(kubectl get nodes -o json | jq -r ".items[] | select(.spec.providerID != null) | .metadata.name"); do
-                          if kubectl get node "\$node" -o jsonpath="{.spec.providerID}" | grep -q "\$i"; then
-                            kubectl label node "\$node" "role=\$n" --overwrite
-                            echo "Labeled \$node as role=\$n"
-                          fi
-                        done
+                    # Label monitoring nodes
+                    aws ec2 describe-instances \
+                    --filters "Name=instance-state-name,Values=running" \
+                    --query "Reservations[*].Instances[*].[InstanceId,Tags[?Key=='Name'].Value | [0]]" \
+                    --output text | while read -r instance_id aws_name; do
+                        if [ "$aws_name" = ${EKS_MONITORING_NODE} ]; then
+                            k8s_node=$(kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.providerID}{"\n"}{end}' \
+                            | grep "$instance_id" | awk '{print $1}')
+                            if [ -n "$k8s_node" ]; then
+                                kubectl label node "$k8s_node" node-role.kubernetes.io/${EKS_MONITORING_NODE}= --overwrite
+                                echo "✅ Labeled $k8s_node as ${EKS_MONITORING_NODE}"
+                            fi
+                        fi
+                    done
+
+                    # Label app nodes
+                    aws ec2 describe-instances \
+                    --filters "Name=instance-state-name,Values=running" \
+                    --query "Reservations[*].Instances[*].[InstanceId,Tags[?Key=='Name'].Value | [0]]" \
+                    --output text | while read -r instance_id aws_name; do
+                        if [ "$aws_name" = ${EKS_APP_NODE} ]; then
+                            k8s_node=$(kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.providerID}{"\n"}{end}' \
+                            | grep "$instance_id" | awk '{print $1}')
+                            if [ -n "$k8s_node" ]; then
+                                kubectl label node "$k8s_node" node-role.kubernetes.io/${EKS_APP_NODE}= --overwrite
+                                echo "✅ Labeled $k8s_node as ${EKS_APP_NODE}"
+                            fi
+                        fi
                     done
 
 
