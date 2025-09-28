@@ -217,8 +217,8 @@ pipeline {
                             k8s_node=$(kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.providerID}{"\n"}{end}' \
                             | grep "$instance_id" | awk '{print $1}')
                             if [ -n "$k8s_node" ]; then
-                                kubectl label node "$k8s_node" node-role.kubernetes.io/${EKS_MONITORING_NODE}= --overwrite
-                                echo "✅ Labeled $k8s_node as ${EKS_MONITORING_NODE}"
+                                kubectl label node "$k8s_node" node-role.kubernetes.io/monitoring-node= --overwrite
+                                echo "✅ Labeled $k8s_node as monitoring-node"
                             fi
                         fi
                     done
@@ -232,8 +232,8 @@ pipeline {
                             k8s_node=$(kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.providerID}{"\n"}{end}' \
                             | grep "$instance_id" | awk '{print $1}')
                             if [ -n "$k8s_node" ]; then
-                                kubectl label node "$k8s_node" node-role.kubernetes.io/${EKS_APP_NODE}= --overwrite
-                                echo "✅ Labeled $k8s_node as ${EKS_APP_NODE}"
+                                kubectl label node "$k8s_node" node-role.kubernetes.io/app-worker-node= --overwrite
+                                echo "✅ Labeled $k8s_node as app-worker-node"
                             fi
                         fi
                     done

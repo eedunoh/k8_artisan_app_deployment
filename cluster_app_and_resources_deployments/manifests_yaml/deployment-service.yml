@@ -13,7 +13,7 @@ spec:
         app: artisan-app   # Pod label
     spec:                  # only ONE spec block inside template
       nodeSelector:        # ensure pods land on nodes with defined node label
-        role: app_worker_node
+        role: app-worker-node
       containers:
         - name: artisan-app
           image: jackedu/artisan_app:latest

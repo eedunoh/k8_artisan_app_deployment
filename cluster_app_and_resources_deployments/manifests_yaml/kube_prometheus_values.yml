@@ -6,7 +6,7 @@ grafana:
     port: 80        # the port exposed by the Service
     targetPort: 3000  # the port Grafana container listens on
   nodeSelector:
-    role: monitoring_node                   # Schedule only on monitoring nodes
+    role: monitoring-node                   # Schedule only on monitoring nodes
   grafana.ini:
     server:
       root_url: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
@@ -20,7 +20,7 @@ prometheus:
   prometheusSpec:                           
     replicas: 1
     nodeSelector:
-      role: monitoring_node                 # Schedule only on monitoring nodes
+      role: monitoring-node                 # Schedule only on monitoring nodes
     retention: 15d                          # Keep metrics data for 15 days
     storageSpec:                            
       volumeClaimTemplate:                  
