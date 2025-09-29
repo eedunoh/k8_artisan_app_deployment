@@ -28,6 +28,8 @@ module "eks" {
       max_size     = 2
       desired_size = 1
 
+      kubelet_extra_args = "--node-labels=role=app-worker-node"
+
     }
 
     monitoring_node = {
@@ -39,6 +41,7 @@ module "eks" {
       max_size     = 2
       desired_size = 1
 
+      kubelet_extra_args = "--node-labels=role=monitoring-node"
     }
     
   }
