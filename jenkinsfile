@@ -204,35 +204,42 @@ pipeline {
                 ]]) {
                     dir("${MANIFESTS_DIR}") {
                         sh '''
-                     # Set up kubeconfig for EKS
+
+                    # Set up kubeconfig for EKS
                     aws eks --region ${K8_CLUSTER_REGION} update-kubeconfig --name ${K8_CLUSTER_NAME}
 
+
+                    # One of the issues I had to troubleshoot in this project is the issue of node labeling. I improvised by manually labeling the two nodes. 
+                    # Idealy, these node label bash scripts should go into the user_data script, so that new instances in the ASG will label nodes correctly 
+                    # If this is not done, it will cause pods to remain in pending state
 
                     # Label monitoring nodes
                     aws ec2 describe-instances \
                     --filters "Name=instance-state-name,Values=running" \
                     --query "Reservations[*].Instances[*].[InstanceId,Tags[?Key=='Name'].Value | [0]]" \
                     --output text | while read -r instance_id aws_name; do
-                        if [ "$aws_name" = ${EKS_MONITORING_NODE} ]; then
+                        if [ "$aws_name" = monitoring_node ]; then
                             k8s_node=$(kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.providerID}{"\n"}{end}' \
                             | grep "$instance_id" | awk '{print $1}')
                             if [ -n "$k8s_node" ]; then
-                                kubectl label node "$k8s_node" node-role.kubernetes.io/monitoring-node= --overwrite
+                                kubectl label node "$k8s_node" role=monitoring-node --overwrite
                                 echo "✅ Labeled $k8s_node as monitoring-node"
                             fi
                         fi
                     done
+
+
 
                     # Label app nodes
                     aws ec2 describe-instances \
                     --filters "Name=instance-state-name,Values=running" \
                     --query "Reservations[*].Instances[*].[InstanceId,Tags[?Key=='Name'].Value | [0]]" \
                     --output text | while read -r instance_id aws_name; do
-                        if [ "$aws_name" = ${EKS_APP_NODE} ]; then
+                        if [ "$aws_name" = app_worker_node ]; then
                             k8s_node=$(kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.providerID}{"\n"}{end}' \
                             | grep "$instance_id" | awk '{print $1}')
                             if [ -n "$k8s_node" ]; then
-                                kubectl label node "$k8s_node" node-role.kubernetes.io/app-worker-node= --overwrite
+                                kubectl label node "$k8s_node" role=app-worker-node --overwrite
                                 echo "✅ Labeled $k8s_node as app-worker-node"
                             fi
                         fi
@@ -250,9 +257,7 @@ pipeline {
 
 
                     # Install NGINX ingress controller
-                    helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \\
-                    --namespace ingress-nginx --create-namespace \\
-                    --wait --timeout 10m
+                    helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --wait --timeout 10m
 
 
                     # Install EBS CSI driver so Kubernetes can dynamically provision EBS volumes for PVC else PVC will remain in Pending state
@@ -264,9 +269,7 @@ pipeline {
 
 
                     # Install Prometheus + Grafana stack (release name = monitoring)
-                    helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \\
-                    -f kube_prometheus_values.yml \\
-                    --wait --timeout 10m
+                    helm upgrade --install monitoring prometheus-community/kube-prometheus-stack -f kube_prometheus_values.yml --wait --timeout 10m
 
 
                     # Apply ingress rules/ paths based routing
