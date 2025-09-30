@@ -73,6 +73,32 @@ data "aws_subnets" "private_subnets" {
 }
 
 
+
+# Karpenter needs to know which subnets and security groups it can use when provisioning nodes.
+
+# When tags become necessary:
+# You want automatic discovery of all eligible subnets/SGs without explicitly listing them in your Provisioner YAML.
+# You have multiple subnets or security groups and want Karpenter to pick dynamically.
+
+# Tag Subnets
+resource "aws_ec2_tag" "karpenter_subnet_discovery" {
+  for_each = toset(data.aws_subnets.private_subnets.ids)
+
+  key   = "karpenter.sh/discovery"
+  value = "artisian_app_cluster"  # Must match your Provisioner YAML
+  resource_id = each.value
+}
+
+
+# Tagging EKS-managed Node Group SGs
+resource "aws_ec2_tag" "karpenter_managed_ng_sg" {
+  key         = "kubernetes.io/cluster/artisian_app_cluster"
+  value       = "owned"
+  resource_id = module.eks.cluster_security_group_id
+}
+
+
+
 # Outputs
 
 output "main_vpc_id" {

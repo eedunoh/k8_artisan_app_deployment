@@ -19,33 +19,16 @@ module "eks" {
   # EKS Managed Node Group(s)
   self_managed_node_groups = {
 
-    app_worker_node = {
+    kubernetes_utilities_node = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
       ami_type       = "AL2023_x86_64_STANDARD"
-      instance_type = "m6i.xlarge"
+      instance_type = "t3.large"
 
       min_size     = 1
       max_size     = 2
       desired_size = 1
-
-      kubelet_extra_args = "--node-labels=role=app-worker-node"
-
     }
-
-    monitoring_node = {
-      # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      ami_type       = "AL2023_x86_64_STANDARD"
-      instance_type = "m6i.xlarge"
-
-      min_size     = 1
-      max_size     = 2
-      desired_size = 1
-
-      kubelet_extra_args = "--node-labels=role=monitoring-node"
-    }
-    
   }
-
 
   tags = {
     Environment = "dev"
@@ -53,26 +36,47 @@ module "eks" {
 }
 
 
-# Additional Security Group and Ingress Rule for worker Node
 
-resource "aws_security_group" "eks_app_worker_node_custom_sg" {
-  name        = "eks_app_worker_node_http_sg"
-  description = "Custom SG for HTTP/HTTPS traffic to EKS worker nodes"
-  vpc_id      = data.aws_vpc.main.id
-
-  tags = {
-    Environment = "dev"
-  }
-}
 
 
 
 # Outputs
-output "app_worker_node_iam_role_name" {
-  value = module.eks.self_managed_node_groups["app_worker_node"].iam_role_name
+
+data "aws_caller_identity" "current" {}   
+# Purpose: Gets information about the AWS account and caller (the credentials you’re using to run Terraform).
+# Key attributes: account_id → Your AWS account ID, arn → The ARN of the caller and user_id → The unique ID of the caller
+
+
+output "aws_account_id" {
+  value = data.aws_caller_identity.current.account_id
 }
 
 
-output "app_worker_node_iam_role_arn" {
-  value = module.eks.self_managed_node_groups["app_worker_node"].iam_role_arn
+
+data "aws_region" "current" {}
+# Purpose: Returns the AWS region Terraform is operating in (from your provider or environment).
+# Key attribute: name → The AWS region, e.g., eu-north-1
+
+
+output "eks_cluster_name" {
+  value = module.eks.cluster_name
+}
+
+output "eks_cluster_endpoint" {
+  value = module.eks.cluster_endpoint
+}
+
+output "eks_cluster_region" {
+  value = var.region
+}
+
+
+
+
+
+# OIDC = OpenID Connect.
+# It’s a standard for verifying identity over the internet. In EKS, AWS creates an OIDC provider for your cluster. This provider lets Kubernetes pods prove “I am who I say I am” to AWS.
+
+output "eks_oidc_provider_arn" {              # this is similar to OIDC_ENDPOINT. Since we are using the terraform-aws-modules/eks/aws module, it already exposes this as outputs.
+  value = module.eks.oidc_provider_arn
 }

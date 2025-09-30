@@ -1,8 +1,3 @@
-locals {
-  app_worker_node_arn = module.eks.self_managed_node_groups["app_worker_node"].iam_role_arn
-}
-
-
 resource "aws_s3_bucket" "artisian_app_s3_bucket" {
     bucket = var.s3_bucket_name
 }

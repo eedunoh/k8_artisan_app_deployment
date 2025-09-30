@@ -1,0 +1,19 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: monitoring-node
+spec:
+  provider:
+    subnetSelector:
+      karpenter.sh/discovery: artisian_app_cluster
+    securityGroupSelector:
+      kubernetes.io/cluster/artisian_app_cluster: owned
+    # On first run, I was copied the karpenter node role Instance Profile. This will be used in subsquent runs. For this to work for you, just edit the account ID
+    instanceProfile: EC2InstanceProfile
+  requirements:
+    - key: "node.kubernetes.io/instance-type"
+      operator: In
+      values: ["m5.large","m6i.large"]
+  labels:
+    role: monitoring-node
+  ttlSecondsAfterEmpty: 30

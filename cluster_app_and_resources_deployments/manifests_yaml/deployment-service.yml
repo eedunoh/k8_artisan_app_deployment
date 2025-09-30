@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: artisan-app
+  annotations:
+    karpenter.sh/provisioner-name: app-worker-node   # ensures Karpenter provisions a node if none exist
 spec:
   replicas: 2
   selector:
@@ -10,9 +12,9 @@ spec:
   template:
     metadata:
       labels:
-        app: artisan-app   # Pod label
-    spec:                  # only ONE spec block inside template
-      nodeSelector:        # ensure pods land on nodes with defined node label
+        app: artisan-app                             # Pod label
+    spec:                                            # only ONE spec block inside template
+      nodeSelector:                                  # ensure pods land on nodes with defined node label
         role: app-worker-node
       containers:
         - name: artisan-app
@@ -21,6 +23,7 @@ spec:
             - containerPort: 80
             
 ---
+
 # N/B: For a Service, the selector always matches Pod labels, not Node labels. Here’s why:
 # Services route traffic to Pods, not to Nodes directly.
 # Kubernetes looks at the Pod labels defined in the Deployment → template.metadata.labels.
@@ -38,8 +41,3 @@ spec:
       port: 80
       targetPort: 80
   type: ClusterIP
-  # type: NodePort
-  # ports:
-  #   - port: 80
-  #     targetPort: 80
-  #     nodePort: 30080

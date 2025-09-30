@@ -61,3 +61,8 @@ variable "sns_name" {
     description = "sns notification for artisian app"
     type = string
 }
+
+variable "karpenter_version" {
+  default = "v0.33.0"
+  type = string
+}

@@ -209,67 +209,57 @@ pipeline {
                     aws eks --region ${K8_CLUSTER_REGION} update-kubeconfig --name ${K8_CLUSTER_NAME}
 
 
-                    # One of the issues I had to troubleshoot in this project is the issue of node labeling. I improvised by manually labeling the two nodes. 
-                    # Idealy, these node label bash scripts should go into the user_data script, so that new instances in the ASG will label nodes correctly 
-                    # If this is not done, it will cause pods to remain in pending state
-
-                    # Label monitoring nodes
-                    aws ec2 describe-instances \
-                    --filters "Name=instance-state-name,Values=running" \
-                    --query "Reservations[*].Instances[*].[InstanceId,Tags[?Key=='Name'].Value | [0]]" \
-                    --output text | while read -r instance_id aws_name; do
-                        if [ "$aws_name" = monitoring_node ]; then
-                            k8s_node=$(kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.providerID}{"\n"}{end}' \
-                            | grep "$instance_id" | awk '{print $1}')
-                            if [ -n "$k8s_node" ]; then
-                                kubectl label node "$k8s_node" role=monitoring-node --overwrite
-                                echo "✅ Labeled $k8s_node as monitoring-node"
-                            fi
-                        fi
-                    done
-
-
-
-                    # Label app nodes
-                    aws ec2 describe-instances \
-                    --filters "Name=instance-state-name,Values=running" \
-                    --query "Reservations[*].Instances[*].[InstanceId,Tags[?Key=='Name'].Value | [0]]" \
-                    --output text | while read -r instance_id aws_name; do
-                        if [ "$aws_name" = app_worker_node ]; then
-                            k8s_node=$(kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.providerID}{"\n"}{end}' \
-                            | grep "$instance_id" | awk '{print $1}')
-                            if [ -n "$k8s_node" ]; then
-                                kubectl label node "$k8s_node" role=app-worker-node --overwrite
-                                echo "✅ Labeled $k8s_node as app-worker-node"
-                            fi
-                        fi
-                    done
-
-
-                    # Check helm version                            
+                    # Helm was installed in the cicd (jenkins) dockerfile. So all we have to do here is to check helm version.                        
                     helm version
 
 
-                    # Add Helm repos
+                    # Add Helm repos for nginx ingress and prometheus
                     helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
                     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
                     helm repo update
+
+
+                    # Add karpenter to helm and upgrade it. You will also update/add other attributes like cluster_name, karpenter controller role and namespace
+                    helm repo add karpenter https://charts.karpenter.sh
+                    helm upgrade --install karpenter karpenter/karpenter \
+                    --namespace karpenter --create-namespace \
+                    --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=arn:aws:iam::337909745504:role/KarpenterControllerRole \
+                    --set clusterName=${K8_CLUSTER_NAME} \
+                    --set clusterEndpoint=$(aws eks describe-cluster --name ${K8_CLUSTER_NAME} --query "cluster.endpoint" --output text)
+
+                    
+
+                    # When Karpenter (or any node) joins your EKS cluster, the EC2 instance must be able to authenticate with the cluster. To do this, we need to update the ConfigMap.
+                    kubectl apply -f karpenter-aws-auth.yml
+
+
+
+                    # Create provisioners. These will create the node groups and get them ready for the pods to be scheduled.
+                    kubectl apply -f karpenter_app_worker_nodes.yml
+
+                    kubectl apply -f karpenter_monitoring_nodes.yml
+
+
+
+                    # app-worker-node and monitoring-node Provisioners are now registered in your cluster. 
+                    # Karpenter will use these definitions to launch EC2 instances whenever pods need scheduling and no suitable node exists.
+                    # Nodes have not necessarily spun up yet, you will see new EC2 instances created automatically once pods are pending and need scheduling.
+                    # kubectl get nodes --show-labels - will show you all nodes and labels + other attributes.
+
 
 
                     # Install NGINX ingress controller
                     helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --wait --timeout 10m
 
 
-                    # Install EBS CSI driver so Kubernetes can dynamically provision EBS volumes for PVC else PVC will remain in Pending state
-                    kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.25"
-
-
                     # Deploy application (Deployment + Service)
                     kubectl apply -f deployment-service.yml
 
 
+
                     # Install Prometheus + Grafana stack (release name = monitoring)
                     helm upgrade --install monitoring prometheus-community/kube-prometheus-stack -f kube_prometheus_values.yml --wait --timeout 10m
+
 
 
                     # Apply ingress rules/ paths based routing

@@ -1,32 +1,31 @@
 grafana:
-  adminPassword: "ThisIsATestPassword654@"   # Sets Grafana admin login password
+  adminPassword: "ThisIsATestPassword654@"               # Sets Grafana admin login password
   # username: "admin"
   service:
     type: ClusterIP
-    port: 80        # the port exposed by the Service
-    targetPort: 3000  # the port Grafana container listens on
+    port: 80                                             # the port exposed by the Service
+    targetPort: 3000                                     # the port Grafana container listens on
   nodeSelector:
-    role: monitoring-node                   # Schedule only on monitoring nodes
+    role: monitoring-node                                # Schedule only on monitoring nodes
+  annotations:
+    karpenter.sh/provisioner-name: monitoring-node
   grafana.ini:
     server:
       root_url: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
-      serve_from_sub_path: true             # Required for /grafana path
+      serve_from_sub_path: true                         # Required for /grafana path
 
 prometheus:
   service:
     type: ClusterIP
-    port: 9090        # The port exposed by the Service
-    targetPort: 9090  # The port Prometheus container listens on
+    port: 9090                                          # The port exposed by the Service
+    targetPort: 9090                                    # The port Prometheus container listens on
   prometheusSpec:                           
     replicas: 1
     nodeSelector:
-      role: monitoring-node                 # Schedule only on monitoring nodes
-    retention: 15d                          # Keep metrics data for 15 days
+      role: monitoring-node                             # Schedule only on monitoring nodes
+    annotations:
+      karpenter.sh/provisioner-name: monitoring-node    # ensures Karpenter provisions a node if none exist
+    retention: 15d                                      # Keep metrics data for 15 days
     storageSpec:                            
-      volumeClaimTemplate:                  
-        spec:  
-          storageClassName: gp2                             
-          accessModes: ["ReadWriteOnce"]    # Volume mounted by one node at a time
-          resources:                        
-            requests:
-              storage: 20Gi                 # Allocate 20Gi of persistent storage
+      emptyDir: {}                                      # ephemeral, no PVC used for now. You can add EBS in production or even use s3
+          
