@@ -275,20 +275,22 @@ pipeline {
             when {
                 expression { params.CLUSTER_DEPLOYMENTS }
             }
-            steps { 
-                withCredentials([ 
-                    file(credentialsId: 'CERT', variable: 'CERT'), 
-                    file(credentialsId: 'KEY', variable: 'KEY') 
-                    ]) { 
-                        sh """ 
-                        kubectl create secret tls cloudflare-origin-cert  
-                        --cert=$CERT  
-                        --key=$KEY 
-                        --dry-run=client -o yaml | kubectl apply -f - 
-                        """ 
-                    } 
-                } 
-            } 
+            steps {
+                withCredentials([
+                    string(credentialsId: 'CERT', variable: 'CERT'),
+                    string(credentialsId: 'KEY', variable: 'KEY')
+                ]) {
+                    sh """
+                    echo "$CERT" > cert.pem
+                    echo "$KEY" > key.pem
+                    kubectl create secret tls cloudflare-origin-cert \
+                    --cert=cert.pem \
+                    --key=key.pem \
+                    --dry-run=client -o yaml | kubectl apply -f -
+                    """
+                }
+            }
+        } 
 
 
 
