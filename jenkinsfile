@@ -282,8 +282,8 @@ pipeline {
                 ]) {
                     sh """
                     kubectl create secret tls cloudflare-origin-cert \
-                    --cert=${CERT} \
-                    --key=${KEY} \
+                    --cert=<(echo "$$CERT") \
+                    --key=<(echo "$$KEY") \
                     --dry-run=client -o yaml | kubectl apply -f -
                     """
                 }
