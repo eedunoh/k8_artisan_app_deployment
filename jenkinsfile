@@ -281,8 +281,8 @@ pipeline {
                     string(credentialsId: 'KEY', variable: 'KEY')
                 ]) {
                     sh """
-                    echo "$CERT" > cert.pem
-                    echo "$KEY" > key.pem
+                    echo "$CERT" | base64 -d > cert.pem
+                    echo "$KEY" | base64 -d > key.pem
                     kubectl create secret tls cloudflare-origin-cert \
                     --cert=cert.pem \
                     --key=key.pem \
