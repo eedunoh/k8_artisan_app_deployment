@@ -277,8 +277,8 @@ pipeline {
             }
             steps {
                 withCredentials([
-                    file(credentialsId: 'cloudflare-cert', variable: 'CERT'),
-                    file(credentialsId: 'cloudflare-key', variable: 'KEY')
+                    file(credentialsId: 'CERT', variable: 'CERT'),
+                    file(credentialsId: 'KEY', variable: 'KEY')
                 ]) {
                     sh '''
                     echo "🔑 Checking cert and key files..."
