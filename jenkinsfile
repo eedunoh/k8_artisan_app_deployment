@@ -282,12 +282,12 @@ pipeline {
                 ]) {
                     sh """
                     echo "🔑 Checking cert and key files..."
-                    ls -l $CERT $KEY
+                    ls -l ${CERT} ${KEY}
 
                     echo "📦 Creating/Updating TLS secret in Kubernetes..."
                     kubectl create secret tls cloudflare-origin-cert \
-                    --cert=$CERT \
-                    --key=$KEY \
+                    --cert=${CERT} \
+                    --key=${KEY} \
                     --dry-run=client -o yaml | kubectl apply -f -
                     """
                 }
