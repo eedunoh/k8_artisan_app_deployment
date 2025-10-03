@@ -22,7 +22,7 @@ module "eks" {
     kubernetes_utilities_node = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
       ami_type       = "AL2023_x86_64_STANDARD"
-      instance_type = "t3.large"
+      instance_type = "m5.xlarge"
 
       min_size     = 1
       max_size     = 2
