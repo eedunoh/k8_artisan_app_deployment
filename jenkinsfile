@@ -329,7 +329,13 @@ pipeline {
 
         always {
             echo '🔔 Pipeline finished running.'
-            cleanWs()
+            script {
+                if (env.WORKSPACE) {
+                    cleanWs()
+                } else {
+                    echo "⚠️ No workspace found to clean"
+                }
+            }
         }
     }
 }
