@@ -277,13 +277,13 @@ pipeline {
             }
             steps {
                 withCredentials([
-                    string(credentialsId: 'CERT', variable: 'CERT'),
-                    string(credentialsId: 'KEY', variable: 'KEY')
+                    file(credentialsId: 'CERT', variable: 'CERT'),
+                    file(credentialsId: 'KEY', variable: 'KEY')
                 ]) {
                     sh """
                     kubectl create secret tls cloudflare-origin-cert \
-                    --cert=$CERT \
-                    --key=$KEY \
+                    --cert=${CERT} \
+                    --key=${KEY} \
                     --dry-run=client -o yaml | kubectl apply -f -
                     """
                 }
